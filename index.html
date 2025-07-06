@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Nota de Venta Electronica</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos básicos */
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            width: 450px;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+	font-size: 26px;
+	margin-bottom: 20px;
+	color: #006;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            margin-top: 30px;
+        }
+
+        .total-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* Estilo para el cuadro de datos alineados a la derecha */
+        .data-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .data-box .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .data-box .data-item span {
+            font-weight: bold;
+        }
+
+        .data-box .data-item .value {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Generar Nota de Venta Electronica</h1>
+
+        <form id="boleta-form">
+            <!-- Empresa y Dirección -->
+            <div>
+                <strong>Empresa:</strong>
+                <select id="empresa" name="empresa" required onchange="actualizarDireccion()">
+                    <option value="">Elija su empresa</option>
+                    <option value="Importaciones - Soporte Tecnico ANDROID TV">Importaciones - Soporte Tecnico ANDROID TV</option>
+                </select>
+            </div>
+
+            <div>
+                <strong>Dirección:</strong>
+                <input type="text" id="direccion" name="direccion" required readonly>
+            </div>
+
+            <!-- Fecha -->
+            <div>
+                <strong>Fecha:</strong>
+                <input type="text" id="fecha" name="fecha" required readonly>
+            </div>
+
+            <!-- Tipo de Documento -->
+            <div>
+                <strong>Tipo de Documento:</strong>
+                <select id="tipo-documento" name="tipo-documento" required>
+                    <option value="Boleta">Boleta</option>
+                    <option value="Factura">Factura</option>
+                </select>
+            </div>
+
+            <!-- DNI -->
+            <div>
+                <strong>DNI:</strong>
+                <input type="text" id="dni" name="dni" required>
+            </div>
+
+            <!-- Nombre del Cliente -->
+            <div>
+                <strong>Nombre:</strong>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+
+            <!-- Tabla de Productos -->
+            <table id="productos-table">
+                <thead>
+                    <tr>
+                        <th>Cantidad</th>
+                        <th>Producto</th>
+                        <th>Valor Unitario</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="number" id="cantidad1" name="cantidad1" required oninput="calcularTotal()"></td>
+                        <td><input type="text" id="producto1" name="producto1" required></td>
+                        <td><input type="number" id="precio1" name="precio1" required oninput="calcularTotal()"></td>
+                        <td><input type="text" id="total1" name="total1" readonly></td>
+                    </tr>
+                    <tr>
+                        <td><input type="number" id="cantidad2" name="cantidad2" oninput="calcularTotal()"></td>
+                        <td><input type="text" id="producto2" name="producto2"></td>
+                        <td><input type="number" id="precio2" name="precio2" oninput="calcularTotal()"></td>
+                        <td><input type="text" id="total2" name="total2" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Total General -->
+            <div class="total-container">
+                <div>
+                    <strong>Total General:</strong>
+                </div>
+                <div>
+                    <input type="text" id="totalGeneral" name="totalGeneral" readonly>
+                </div>
+            </div>
+
+            <!-- Expresión en letras -->
+            <div class="total-container" id="expresion-container" style="display: none;">
+                <div>
+                    <strong>Expresión en Letras:</strong>
+                </div>
+                <div>
+                    <input type="text" id="totalLetras" name="totalLetras" readonly>
+                </div>
+            </div>
+
+            <!-- Número de boleta oculto -->
+            <input type="hidden" id="nota-venta" name="nota-venta">
+
+            <!-- Botón de Generación de Boleta -->
+            <div>
+                <button type="submit">Generar Boleta</button>
+            </div>
+        </form>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Función para obtener la fecha actual y mostrarla en el campo de fecha
+        function obtenerFechaActual() {
+            const fecha = new Date();
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const anio = fecha.getFullYear();
+            const fechaFormateada = `${dia}-${mes}-${anio}`;
+            document.getElementById('fecha').value = fechaFormateada;
+        }
+	
+        // Función para actualizar la dirección según la empresa seleccionada
+        function actualizarDireccion() {
+            const empresa = document.getElementById('empresa').value;
+            const direccion = document.getElementById('direccion');
+            if (empresa === "Importaciones - Soporte Tecnico ANDROID TV") {
+                direccion.value = "Calle Nueva 438 Interior-Santiago-Cusco";
+            } else {
+                direccion.value = "";
+            }
+        }
+
+        // Función para calcular el total de cada producto y el total general
+        function calcularTotal() {
+            const cantidad1 = parseFloat(document.getElementById('cantidad1').value) || 0;
+            const precio1 = parseFloat(document.getElementById('precio1').value) || 0;
+            const total1 = cantidad1 * precio1;
+            document.getElementById('total1').value = total1.toFixed(2);
+
+            const cantidad2 = parseFloat(document.getElementById('cantidad2').value) || 0;
+            const precio2 = parseFloat(document.getElementById('precio2').value) || 0;
+            const total2 = cantidad2 * precio2;
+            document.getElementById('total2').value = total2.toFixed(2);
+
+            // Calcular el total general
+            const totalGeneral = (parseFloat(total1) || 0) + (parseFloat(total2) || 0);
+            document.getElementById('totalGeneral').value = totalGeneral.toFixed(2);
+
+            // Convertir el total a letras
+            const totalEnLetras = numeroALetras(Math.floor(totalGeneral)) + " CON " + (totalGeneral % 1).toFixed(2).slice(2) + "/100 SOLES";
+            document.getElementById('totalLetras').value = totalEnLetras;
+
+            // Mostrar la sección de expresión en letras solo si el total es mayor que 0
+            if (totalGeneral > 0) {
+                document.getElementById('expresion-container').style.display = "flex";
+            } else {
+                document.getElementById('expresion-container').style.display = "none";
+            }
+        }
+
+        // Función para convertir el número a letras
+        function numeroALetras(num) {
+            const unidades = ["", "UNO", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE", "DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE"];
+            const decenas = ["", "", "VEINTE", "TREINTA", "CUARENTA", "CINCUENTA", "SESENTA", "SETENTA", "OCHENTA", "NOVENTA"];
+            const centenas = ["", "CIENTO", "DOSCIENTOS", "TRESCIENTOS", "CUATROCIENTOS", "QUINIENTOS", "SEISCIENTOS", "SETECIENTOS", "OCHOCIENTOS", "NOVECIENTOS"];
+
+            if (num < 20) {
+                return unidades[num];
+            }
+
+            const d = Math.floor(num / 10);
+            const u = num % 10;
+
+            return decenas[d] + (u > 0 ? " Y " + unidades[u] : "");
+        }
+
+        // Función para emitir el PDF con jsPDF
+        function emitirPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: [148, 210]  // Tamaño A5
+            });
+
+            const margin = 15;
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+
+            // Título de la boleta
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(17);
+            const textWidth1 = doc.getTextWidth('NOTA DE VENTA ELECTRONICA');
+            const centerX1 = (pageWidth - textWidth1) / 2;
+            doc.text('NOTA DE VENTA ELECTRONICA', centerX1, margin);
+
+            // Agregar datos al PDF
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(12);
+            doc.text(`Fecha: ${document.getElementById('fecha').value}`, margin + 5, margin + 20);
+			doc.text(`Hora: ${document.getElementById('fecha').value}`, margin + 5, margin + 28);
+            doc.text(`DNI: ${document.getElementById('dni').value}`, margin + 5, margin + 36);
+            doc.text(`Nombre del Cliente: ${document.getElementById('nombre').value}`, margin + 5, margin + 44);
+
+            // Calcular la posición horizontal para centrar el texto
+            const textCenter1 = (pageWidth - doc.getTextWidth(`Empresa: ${document.getElementById('empresa').value}`)) / 2;
+            const textCenter2 = (pageWidth - doc.getTextWidth(`Dirección: ${document.getElementById('direccion').value}`)) / 2;
+
+            // Calcular la posición vertical para centrar el texto
+            const verticalOffset = (pageHeight - margin) / 2;
+
+            // Agregar texto centrado DESPUESDELO" SE AGREGA EL NOMBRE EJEMPLO EMPRESA: DIRECION:
+            doc.text(`       ${document.getElementById('empresa').value}`, textCenter1, verticalOffset + -77),{ align: 'right' };
+            doc.text(`         ${document.getElementById('direccion').value}`, textCenter2, verticalOffset + -72),{ align: 'right' };
+			
+			
+			
+
+// Continuar con el resto de los datos (productos, totales, etc.)
+let yPosition = margin + 60;
+
+// Producto 1 (solo texto)
+doc.text(`Producto`, margin + 5, margin + 52)
+
+
+// Cantidad (solo texto)
+yPosition += 10; // Espacio entre las líneas
+doc.text(`Cant`, margin + 60,margin + 52)
+
+
+// Valor Unitario (solo texto)
+yPosition += 10;
+doc.text(`Valor S/`, margin + 72,margin + 52)
+
+
+// Total (solo texto)
+yPosition += 10;
+doc.text(`Sub Total S/`, margin + 90, margin + 52)
+
+
+
+            // Continuar con el resto de los datos (productos, totales, etc.)
+            doc.text(` ${document.getElementById('producto1').value}`, margin + 5, margin + 60);
+            doc.text(` ${document.getElementById('cantidad1').value}`, margin + 60, margin + 60),{ align: 'right' };
+            doc.text(`  S/ ${document.getElementById('precio1').value}`, margin + 72, margin + 60),{ align: 'right' };
+            doc.text(`  S/ ${document.getElementById('total1').value}`, margin + 90, margin + 60),{ align: 'right' };
+
+            // Si existe un segundo producto 2
+            if (document.getElementById('producto2').value) {
+                doc.text(` ${document.getElementById('producto2').value}`, margin + 5, margin + 67);
+                doc.text(` ${document.getElementById('cantidad2').value}`, margin + 60, margin + 67),{ align: 'right' };
+                doc.text(`  S/ ${document.getElementById('precio2').value}`, margin + 72, margin + 67),{ align: 'right' };
+                doc.text(`  S/ ${document.getElementById('total2').value}`, margin + 90, margin + 67),{ align: 'right' };
+            }
+
+           // Total general (alineado a la derecha)
+const textRight = doc.internal.pageSize.width - margin - 5; // Ajusta la posición para alinear a la derecha
+doc.text(`Total General: S/ ${document.getElementById('totalGeneral').value}`, textRight, margin + 75, { align: 'right' });
+
+// Expresión en letras (alineado a la derecha)
+doc.text(`${document.getElementById('totalLetras').value}`, textRight, margin + 82, { align: 'right' });
+
+            // Guardar el PDF
+            doc.save('boleta-de-venta.pdf');
+
+            // Limpiar los campos del formulario después de generar el PDF
+            const form = document.getElementById('boleta-form');
+            form.reset();
+            document.getElementById('fecha').value = new Date().toLocaleDateString(); // Mantener la fecha actual
+            document.getElementById('empresa').value = ''; // Limpiar empresa
+            document.getElementById('direccion').value = ''; // Limpiar dirección
+            document.getElementById('totalGeneral').value = ''; // Limpiar total
+            document.getElementById('totalLetras').value = ''; // Limpiar total en letras
+        }
+
+        // Evento para el formulario de boleta
+        document.getElementById('boleta-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            emitirPDF();
+        });
+
+        // Ejecutar la función para mostrar la fecha cuando se carga la página
+        window.onload = function() {
+            obtenerFechaActual();
+        }
+    </script>
+
+</body>
+</html>
+
